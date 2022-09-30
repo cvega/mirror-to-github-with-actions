@@ -1,0 +1,34 @@
+name: mirror-scheduled-gitlab
+
+on:
+  schedule:
+    # every Saturday at noon
+    - cron:  '0 12 * * SAT'
+
+jobs:
+  mirror:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: install nodejs packages
+        run: |
+          cd .github/workflows
+          npm install 
+      - name: mirror
+        env:
+          GITLAB_APP_CREDENTIALS: ${{ secrets.GITLAB_APP_CREDENTIALS }}
+          GITLAB_HOST: ${{ secrets.GITLAB_HOST }}
+          MIRROR_APP_ID: ${{ secrets.MIRROR_APP_ID }}
+          MIRROR_INSTALLATION_ID: ${{ secrets.MIRROR_INSTALLATION_ID }}
+          MIRROR_PEM: '${{ secrets.MIRROR_PEM }}'
+          MIRROR_API_URL: ${{ secrets.MIRROR_API_URL }}
+        run: |
+          cd .github/workflows
+          node mirror.js \
+          --gitlab \
+          --csv ../../mappings.csv

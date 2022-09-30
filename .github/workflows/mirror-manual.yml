@@ -1,0 +1,43 @@
+name: mirror-manual
+
+on:
+  workflow_dispatch:
+    inputs:
+      source-repo:
+        description: 'git source repo (org/repo)'
+        required: true 
+        type: string
+      mirror-repo:
+        description: 'git mirror repo (org/repo)'
+        required: true 
+        type: string
+
+jobs:
+  mirror:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: install nodejs packages
+        run: |
+          cd .github/workflows
+          npm install 
+      - name: mirror 
+        env:
+          SOURCE_APP_ID: ${{ secrets.SOURCE_APP_ID }}
+          SOURCE_INSTALLATION_ID: ${{ secrets.SOURCE_INSTALLATION_ID }}
+          SOURCE_PEM: '${{ secrets.SOURCE_PEM }}'
+          SOURCE_API_URL: ${{ secrets.SOURCE_API_URL }}
+          MIRROR_APP_ID: ${{ secrets.MIRROR_APP_ID }}
+          MIRROR_INSTALLATION_ID: ${{ secrets.MIRROR_INSTALLATION_ID }}
+          MIRROR_PEM: '${{ secrets.MIRROR_PEM }}'
+          MIRROR_API_URL: ${{ secrets.MIRROR_API_URL }}
+        run: |
+          cd .github/workflows
+          node mirror.js \
+            --source ${{ github.event.inputs.source-repo }} \
+            --mirror ${{ github.event.inputs.mirror-repo }}

@@ -1,0 +1,37 @@
+name: mirror-csv-bitbucket
+
+on:
+  workflow_dispatch:
+    inputs:
+      csv:
+        description: 'path to csv file'
+        default: '../../repos-bitbucket.csv'
+        required: true 
+        type: string
+
+jobs:
+  mirror:
+    runs-on: self-hosted
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+      - name: install nodejs packages
+        run: |
+          cd .github/workflows
+          npm install 
+      - name: mirror
+        if: "${{ github.event.inputs.csv != '' }}"
+        env:
+          BITBUCKET_APP_CREDENTIALS: ${{ secrets.BITBUCKET_APP_CREDENTIALS }}
+          BITBUCKET_HOST: ${{ secrets.BITBUCKET_HOST }}
+          MIRROR_APP_ID: ${{ secrets.MIRROR_APP_ID }}
+          MIRROR_INSTALLATION_ID: ${{ secrets.MIRROR_INSTALLATION_ID }}
+          MIRROR_PEM: '${{ secrets.MIRROR_PEM }}'
+          MIRROR_API_URL: ${{ secrets.MIRROR_API_URL }}
+        run: |
+          cd .github/workflows
+          node mirror.js --bitbucket --csv ${{ github.event.inputs.csv }} 
